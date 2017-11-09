@@ -11,13 +11,12 @@ with open("bad_words.txt") as f:
 custom_bad_words = [x.strip() for x in custom_bad_words] 
 print(custom_bad_words)
 
-profanity.load_words(custom_bad_words)
-
+# regexes to find attributes
 regex_email = r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
-regex_phone = 
-regex_url = r"(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)"
+regex_phone = r"""(\d{3})\D*(\d{3})\D*(\d{4})\D*(\d*)"""
+regex_url = r"""(?:(?:https?|ftp):\/\/|\b(?:[a-z\d]+\.))(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))?"""
 
-# get rid of those fucking carriage returns
+# to get rid of those fucking carriage returns
 def replace(x):
 	if type(x) == str or type(x) == unicode:
 		x = x.replace('\r', '')
@@ -25,14 +24,16 @@ def replace(x):
 		x = x[0].replace('\r', '')
 	return x
 
+# READ IN THE CSV
 csv_df = pd.read_csv('worst_answers_yuhang.csv')
 
+# remove the carriage returns
 csv_df["body"] = csv_df["body"].map(lambda x: x.replace('"', ''))
 csv_df["body"] = csv_df["body"].map(lambda x: replace(x))
-
 csv_df["disclaimer"] = csv_df["body"].map(lambda x: x.replace('"', ''))
 csv_df["disclaimer"] = csv_df["body"].map(lambda x: replace(x))
 
+# lists to convert into pandas columns
 email_in_answers = []
 address_in_answers = []
 url_in_answers = []
