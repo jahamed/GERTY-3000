@@ -1,20 +1,16 @@
 import pandas as pd
 import numpy as np
 import re
-import profanity
+import Algorithmia
 
-custom_bad_words = []
-
-with open("bad_words.txt") as f:
-    custom_bad_words = f.readlines()
-
-custom_bad_words = [x.strip() for x in custom_bad_words] 
-print(custom_bad_words)
+# setup algorithmia for profanity
+client = Algorithmia.client('simePH15/LlJOCVpgEbzCo89mHV1')
+algo = client.algo('nlp/ProfanityDetection/1.0.0')
 
 # regexes to find attributes
 regex_email = r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
 regex_phone = r"""(\d{3})\D*(\d{3})\D*(\d{4})\D*(\d*)"""
-regex_url = r"""(?:(?:https?|ftp):\/\/|\b(?:[a-z\d]+\.))(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))?"""
+regex_url = r"""(http://www.|https://www.|http://|https://|www.)+[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?"""
 
 # to get rid of those fucking carriage returns
 def replace(x):
@@ -25,7 +21,7 @@ def replace(x):
 	return x
 
 # READ IN THE CSV
-csv_df = pd.read_csv('worst_answers_yuhang.csv')
+csv_df = pd.read_csv('best_answers_yuhang.csv')
 
 # remove the carriage returns
 csv_df["body"] = csv_df["body"].map(lambda x: x.replace('"', ''))
@@ -70,16 +66,23 @@ for row in csv_df['body']:
 	# email_in_answers.append(result)
 
 	# check if body has profanity
-	# if not pd.isnull(row):
-	# 	result = 1 if profanity.contains_profanity(row) else 0
-	# else:
-	# 	result = 0
-	# profanity_in_answers.append(result)
+	# so far this doesn't work well, need to multithread requests and too many false positives
+	# try:
+	# 	if not pd.isnull(row):
+	# 		algo_result = algo.pipe(row)
+	# 		print algo_result
+	# 		result = 1 if algo_result else 0
+	# 	else:
+	# 		result = 0
+	# 	profanity_in_answers.append(result)
+	# except:
+	# 	print("Exception in Algorithmia code: " + row)
+	# 	profanity_in_answers.append(0)
 
 csv_df['email_in_answer'] = email_in_answers
 csv_df['phone_number_in_answer'] = phone_number_in_answers
 # csv_df['profanity_in_answer'] = profanity_in_answers
 csv_df['url_in_answer'] = url_in_answers
 
-csv_df.to_csv('worst_answers.csv')
+csv_df.to_csv('best_answers.csv')
 
